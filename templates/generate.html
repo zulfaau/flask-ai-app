@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Prediksi Kata (AI Generator)</title>
+    <style>
+        body {
+            font-family: "Poppins", sans-serif;
+            background: linear-gradient(135deg, #00bcd4, #004d61);
+            color: #222;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: #ffffffee;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            padding: 30px 40px;
+            width: 600px;
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #004d61;
+            margin-bottom: 5px;
+        }
+
+        p {
+            color: #444;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #333;
+            display: block;
+            margin-top: 15px;
+            text-align: left;
+        }
+
+        textarea, input, select {
+            width: 100%;
+            padding: 10px;
+            margin-top: 6px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        textarea:focus, input:focus, select:focus {
+            border-color: #00bcd4;
+            box-shadow: 0 0 5px #00bcd4;
+        }
+
+        button {
+            margin-top: 25px;
+            padding: 12px 25px;
+            background: #00bcd4;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        button:hover {
+            background: #0097a7;
+            transform: scale(1.05);
+        }
+
+        hr {
+            margin: 25px 0;
+            border: none;
+            border-top: 1px solid #ddd;
+        }
+
+        #output {
+            white-space: pre-wrap;
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 15px;
+            color: #222;
+            font-family: "Courier New", monospace;
+            text-align: left;
+            min-height: 80px;
+        }
+    </style>
+
+    <script>
+        async function generateText() {
+            const text = document.getElementById('text').value;
+            const model = document.getElementById('model').value;
+            const seed = document.getElementById('seed').value;
+            const length = document.getElementById('length').value;
+            const epochs = document.getElementById('epochs').value;
+
+            document.getElementById('output').textContent = "⏳ Sedang memproses...";
+
+            const response = await fetch('/api/generate', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({text, model, seed, length, epochs})
+            });
+
+            const data = await response.json();
+            if (data.ok) {
+                document.getElementById('output').textContent = data.generated;
+            } else {
+                document.getElementById('output').textContent = "❌ " + data.error;
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>🧠 Prediksi Kata (AI Text Generator)</h2>
+        <p>Masukkan teks, pilih model, dan hasilkan prediksi karakter berikutnya menggunakan RNN, LSTM, atau GRU.</p>
+
+        <label>Teks Input:</label>
+        <textarea id="text" rows="5">Ini adalah contoh teks untuk model AI</textarea>
+
+        <label>Pilih Model:</label>
+        <select id="model">
+            <option>LSTM</option>
+            <option>Vanilla RNN</option>
+            <option>Bidirectional RNN</option>
+            <option>GRU</option>
+        </select>
+
+        <label>Seed Text:</label>
+        <input id="seed" value="ini ad">
+
+        <label>Jumlah Karakter:</label>
+        <input type="number" id="length" value="50">
+
+        <label>Epochs:</label>
+        <input type="number" id="epochs" value="20">
+
+        <button onclick="generateText()">🚀 Jalankan Model</button>
+        <hr>
+        <h3>📜 Hasil Prediksi:</h3>
+        <pre id="output"></pre>
+    </div>
+</body>
+</html>

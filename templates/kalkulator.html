@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Kalkulator Logika Digital</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 500px;
+            margin: 20px auto;
+        }
+        .result-box {
+            background: #e3f2fd;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background: #3b69b1;
+            color: white;
+        }
+        button {
+            background: #3b69b1;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #2f5494;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>⚙️ Kalkulator Logika Digital</h1>
+        <p class="meta">Zulfa Aulia Hanafi — NPM: 51422690 | Kelas: 4IA08</p>
+    </header>
+
+    <div class="card">
+        <label>Input A:
+            <select id="inputA">
+                <option value="0">0</option>
+                <option value="1">1</option>
+            </select>
+        </label>
+
+        <label>Input B:
+            <select id="inputB">
+                <option value="0">0</option>
+                <option value="1">1</option>
+            </select>
+        </label>
+
+        <label>Pilih Gerbang Logika:
+            <select id="gate">
+                <option>AND</option>
+                <option>OR</option>
+                <option>XOR</option>
+                <option>NAND</option>
+                <option>NOR</option>
+                <option>XNOR</option>
+            </select>
+        </label>
+
+        <button onclick="hitung()">🔍 Hitung</button>
+
+        <div id="hasil" class="result-box" style="display:none;"></div>
+        <div id="tabel" style="margin-top:15px;"></div>
+    </div>
+
+    <script>
+        async function hitung() {
+            const a = document.getElementById('inputA').value;
+            const b = document.getElementById('inputB').value;
+            const gate = document.getElementById('gate').value;
+
+            const res = await fetch('/api/logic', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ a, b, gate })
+            });
+            const data = await res.json();
+
+            if (data.ok) {
+                document.getElementById('hasil').style.display = 'block';
+                document.getElementById('hasil').innerHTML = 
+                    `<b>Hasil ${gate}</b> dari ${a} dan ${b} adalah <b>${data.result}</b>`;
+                
+                // Buat tabel kebenaran
+                let tableHTML = `
+                    <table>
+                        <tr><th>A</th><th>B</th><th>Output</th></tr>
+                        ${data.truth_table.map(row => `
+                            <tr>
+                                <td>${row.A}</td>
+                                <td>${row.B}</td>
+                                <td>${row.Output}</td>
+                            </tr>`).join('')}
+                    </table>`;
+                document.getElementById('tabel').innerHTML = tableHTML;
+            } else {
+                alert("Terjadi kesalahan: " + data.error);
+            }
+        }
+    </script>
+</body>
+</html>
