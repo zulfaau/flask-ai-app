@@ -120,7 +120,11 @@
         document.getElementById("modelUsed").textContent = data.model || model;
         document.getElementById("symbolUsed").textContent = data.symbol || symbol;
         document.getElementById("daysUsed").textContent = data.days || days;
-        document.getElementById("prediction").textContent = data.prediction || "Prediksi berhasil dihasilkan.";
+        document.getElementById("prediction").innerHTML = `
+  <strong>${data.prediksi_terakhir || "Rp -"}</strong><br>
+  <small class="text-muted">Periode: ${data.periode || (days + " hari ke depan")}</small>
+`;
+
 
         // === Simulasi Data (jika belum ada backend real) ===
         const labels = data.daysList || Array.from({length: days}, (_, i) => `Hari ke-${i+1}`);

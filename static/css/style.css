@@ -147,3 +147,40 @@ button:hover {
     padding: 20px;
   }
 }
+
+/* --- PREDIKSI HARGA --- */
+#result-box {
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+  margin-top: 24px;
+}
+
+#prediction {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2b4c7e;
+  margin: 8px 0 4px;
+  text-align: center;
+}
+
+#prediction small {
+  display: block;
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+#result-box h5 {
+  color: #2e4f87;
+  border-bottom: 2px solid #cbdaf6;
+  padding-bottom: 4px;
+  margin-bottom: 12px;
+}
+
+canvas {
+  background: #f9fafc;
+  border-radius: 8px;
+  padding: 10px;
+}
