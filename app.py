@@ -1,11 +1,17 @@
 from flask import Flask, render_template, request, jsonify
 import os
+import base64
 import random
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from io import BytesIO
-import base64
+import cv2
+
+# ======================================
+# 🔥 YOLO
+# ======================================
+from ultralytics import YOLO
 
 # ======================================
 # 🔥 IMPORT RNN / LSTM / GRU (Keras)
@@ -15,6 +21,16 @@ from tensorflow.keras.layers import SimpleRNN, LSTM, GRU, Dense, Embedding, Bidi
 from tensorflow.keras.utils import to_categorical
 
 app = Flask(__name__)
+
+# =======================================================
+# 🔥 Load YOLO Model (otomatis download jika belum ada)
+# =======================================================
+try:
+    MODEL_YOLO = YOLO("yolov8n.pt")  # otomatis download
+    print("✅ YOLO model loaded")
+except Exception as e:
+    MODEL_YOLO = None
+    print("❌ YOLO model gagal load:", e)
 
 # ======================================================================
 # 🏠 HALAMAN UTAMA
@@ -176,7 +192,6 @@ def predict_stock_api():
         return jsonify({'ok': False, 'error': 'Kolom harga tidak ditemukan'}), 400
 
     prices = df[price_col].dropna().tolist()
-
     actual = prices[-days:]
 
     preds = []
@@ -201,8 +216,68 @@ def predict_stock_api():
     })
 
 
-# ======================================================================
+# =======================================================
+# 📸 HALAMAN YOLO
+# =======================================================
+@app.route('/object_detection')
+def object_detection_page():
+    return render_template('object_detection.html')
+
+
+# =======================================================
+# 🔥 API YOLO DETECTION
+# =======================================================
+@app.route('/api/object_detect', methods=['POST'])
+def object_detect_api():
+    if MODEL_YOLO is None:
+        return jsonify({"ok": False, "msg": "Model YOLO tidak siap!"}), 500
+
+    if 'image' not in request.files:
+        return jsonify({'ok': False, 'msg': 'Tidak ada file gambar'}), 400
+
+    file = request.files['image']
+    img_bytes = file.read()
+
+    nparr = np.frombuffer(img_bytes, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+    if img is None:
+        return jsonify({"ok": False, "msg": "Gambar tidak bisa dibaca"}), 400
+
+    results = MODEL_YOLO(img)
+    detected_objects = []
+    found = False
+
+    for result in results:
+        for box in result.boxes:
+            found = True
+            x1, y1, x2, y2 = [int(v) for v in box.xyxy[0]]
+            conf = float(box.conf[0])
+            cls = int(box.cls.item())
+            label = MODEL_YOLO.names.get(cls, str(cls))
+
+            detected_objects.append({
+                "label": label,
+                "confidence": round(conf * 100, 2)
+            })
+
+            cv2.rectangle(img, (x1, y1), (x2, y2), (30, 200, 255), 3)
+            cv2.putText(img, f"{label} {conf:.2f}", (x1, y1 - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (30, 200, 255), 2)
+
+    _, buffer = cv2.imencode('.jpg', img)
+    img_base64 = base64.b64encode(buffer).decode()
+
+    return jsonify({
+        "ok": True,
+        "found": found,
+        "objects": detected_objects,
+        "image": img_base64
+    })
+
+
+# =======================================================
 # 🚀 RUN SERVER
-# ======================================================================
+# =======================================================
 if __name__ == "__main__":
     app.run(debug=True, port=8000)
